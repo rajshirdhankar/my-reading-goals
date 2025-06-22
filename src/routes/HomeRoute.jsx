@@ -55,7 +55,7 @@ export const HomeRoute = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Search & Filter Section */}
+       
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 md:items-center">
             <div className="flex-1 relative">
@@ -118,7 +118,7 @@ export const HomeRoute = () => {
           </div>
         </div>
 
-        {/* Book Display Section */}
+       
         {filteredBooks.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
             {getMessage()}

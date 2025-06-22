@@ -13,12 +13,12 @@ export const Navbar = () => {
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Non-clickable heading */}
+       
         <div className="text-2xl font-extrabold text-gray-900 tracking-wide">
           My Reading Goals
         </div>
 
-        {/* Navigation Links */}
+       
         <div className="flex items-center gap-4">
           <Link to="/" className={linkClasses("/")}>
             Home

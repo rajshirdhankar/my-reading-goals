@@ -7,7 +7,7 @@ body {
   background-color: #f9fafb;
 }
 
-/* Custom scrollbar */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
