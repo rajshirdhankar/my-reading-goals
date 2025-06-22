@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { BookCard } from "@/components/BookCard";
-import { getBooksFromStorage } from "@/lib/storage";
+import { Button } from "@/components/ui/button";
+import { getBooksFromStorage, saveBooksToStorage } from "@/lib/storage";
 
 export const HomeRoute = () => {
   const [books, setBooks] = useState([]);
@@ -14,57 +13,56 @@ export const HomeRoute = () => {
     setBooks(storedBooks);
   }, []);
 
-  const toggleReadStatus = (id) => {
-    const updatedBooks = books.map(book => 
-      book.id === id ? { ...book, isRead: !book.isRead } : book
-    );
-    setBooks(updatedBooks);
-    localStorage.setItem('readingGoals_books', JSON.stringify(updatedBooks));
+  const updateStorage = (newBooks) => {
+    saveBooksToStorage(newBooks);
+    setBooks(newBooks);
   };
 
-  const filteredBooks = books.filter(book => {
-    if (filter === "read") return book.isRead;
-    if (filter === "unread") return !book.isRead;
-    if (searchTerm) {
-      return book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-             book.author.toLowerCase().includes(searchTerm.toLowerCase());
-    }
-    return true;
+  const toggleReadStatus = (id) => {
+    const updatedBooks = books.map((book) =>
+      book.id === id ? { ...book, isRead: !book.isRead } : book
+    );
+    updateStorage(updatedBooks);
+  };
+
+  const handleDelete = (id) => {
+    const updatedBooks = books.filter((book) => book.id !== id);
+    updateStorage(updatedBooks);
+  };
+
+  const filteredBooks = books.filter((book) => {
+    const matchesSearch =
+      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (filter === "read") return book.isRead && matchesSearch;
+    if (filter === "unread") return !book.isRead && matchesSearch;
+    return matchesSearch;
   });
+
+  const getMessage = () => {
+    if (books.length === 0) return "No books added yet.";
+    if (books.length > 0 && books.every((book) => book.isRead))
+      return "You’ve read all your books!";
+    if (filteredBooks.length === 0) {
+      if (filter === "read") return "You haven't completed any books yet.";
+      if (filter === "unread") return "All books have been read!";
+      return "No books match your search.";
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">My Reading Goals</h1>
-            <p className="text-gray-500 text-sm">Track your reading progress</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm bg-white px-3 py-1.5 rounded-lg shadow-sm">
-              {new Date().toLocaleDateString('en-GB', { 
-                day: '2-digit', 
-                month: 'short', 
-                year: 'numeric' 
-              })}
-            </div>
-            <Link to="/add">
-              <Button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 shadow-sm">
-                + Add Book
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Search and Filter */}
+        {/* Search & Filter Section */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 md:items-center">
             <div className="flex-1 relative">
               <input
                 type="text"
                 placeholder="Search books..."
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -73,7 +71,6 @@ export const HomeRoute = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
@@ -83,25 +80,37 @@ export const HomeRoute = () => {
                 />
               </svg>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={filter === "all" ? "default" : "outline"} 
+            <div className="flex gap-3">
+              <Button
                 onClick={() => setFilter("all")}
-                className="px-4 py-2.5"
+                className={`px-5 py-2 rounded-xl cursor-pointer border ${
+                  filter === "all"
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "border-gray-300 text-gray-700 hover:bg-blue-100"
+                }`}
+                variant={filter === "all" ? "default" : "outline"}
               >
                 All
               </Button>
-              <Button 
-                variant={filter === "read" ? "default" : "outline"} 
+              <Button
                 onClick={() => setFilter("read")}
-                className="px-4 py-2.5"
+                className={`px-5 py-2 rounded-xl cursor-pointer border ${
+                  filter === "read"
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "border-gray-300 text-gray-700 hover:bg-green-100"
+                }`}
+                variant={filter === "read" ? "default" : "outline"}
               >
                 Read
               </Button>
-              <Button 
-                variant={filter === "unread" ? "default" : "outline"} 
+              <Button
                 onClick={() => setFilter("unread")}
-                className="px-4 py-2.5"
+                className={`px-5 py-2 rounded-xl cursor-pointer border ${
+                  filter === "unread"
+                    ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                    : "border-gray-300 text-gray-700 hover:bg-yellow-100"
+                }`}
+                variant={filter === "unread" ? "default" : "outline"}
               >
                 Unread
               </Button>
@@ -109,38 +118,23 @@ export const HomeRoute = () => {
           </div>
         </div>
 
-        {/* Books List */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 px-2">
-            {filter === "all" ? "All Books" : filter === "read" ? "Completed Books" : "Books to Read"}
-            <span className="text-gray-500 ml-2 text-sm font-normal">
-              ({filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'})
-            </span>
-          </h2>
-
-          {filteredBooks.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500 mb-4">
-                {books.length === 0 ? 'Your reading list is empty' : 'No books match your search'}
-              </p>
-              <Link to="/add">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  Add Your First Book
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredBooks.map(book => (
-                <BookCard 
-                  key={book.id} 
-                  book={book} 
-                  onToggleRead={toggleReadStatus} 
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Book Display Section */}
+        {filteredBooks.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
+            {getMessage()}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredBooks.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                onToggleRead={toggleReadStatus}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
